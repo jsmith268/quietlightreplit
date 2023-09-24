@@ -3,6 +3,7 @@ import logging
 import os
 import time
 
+import pymsteams
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask
@@ -43,6 +44,14 @@ def scrape_quietlight():
     return BeautifulSoup(resp.text, 'html.parser')
 
 def main():
+
+  # Replace YOUR_WEBHOOK_URL with the URL you got from Microsoft Teams
+  webhook_url = os.getenv("MICROSOFT_TEAMS_WEBHOOK_URL")
+  
+  # Initialize the connector card object with the Microsoft Teams Webhook URL
+  teams_message = pymsteams.connectorcard(webhook_url)
+  
+
   try:  
     with open('quietlight_data.json') as json1_file:
         QUIETLIGHT_DATA = json.load(json1_file)
@@ -89,12 +98,20 @@ def main():
               if QUIETLIGHT_DATA[listing_title]["price"] > listing_price:
                   body_text = f"QUIET LIGHT PRICE CHANGE!!\n\nListing: {listing_title}\n\nNew Price: ${listing_price}\nOriginal Price: ${QUIETLIGHT_DATA[listing_title]['price']}"
                   send_text(body_text)
+                
+                  # Send Microsoft Teams Message
+                  teams_message.text(body_text)
+                  teams_message.send()
+            
               QUIETLIGHT_DATA[listing_title]["price"] = listing_price
           if QUIETLIGHT_DATA[listing_title]["status"] != listing_status:
               # change status
               if listing_status == "available":
                   body_text = f"QUIET LIGHT STATUS CHANGE!!\n\nListing: {listing_title}\n\nNew Status: {listing_status}\nOld Status: {QUIETLIGHT_DATA[listing_title]['status']}"
                   send_text(body_text)
+                
+                  teams_message.text(body_text)
+                  teams_message.send()
               QUIETLIGHT_DATA[listing_title]['status'] = listing_status
 
       # If listing title does not exist, add to the dict
@@ -103,6 +120,9 @@ def main():
       else:
           body_text = f"NEW QUIET LIGHT LISTING\n\n{listing_title}\n\nLink: {listing_website}\n\nPrice: ${listing_price}\nRevenue: ${listing_revenue}\nSDE: ${listing_earnings}"
           send_text(body_text)
+        
+          teams_message.text(body_text)
+          teams_message.send()
 
           print("adding listing to Quiet Light DB")
           QUIETLIGHT_DATA[listing_title] = {
