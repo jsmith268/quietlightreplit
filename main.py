@@ -133,7 +133,9 @@ def main():
               "earnings": listing_earnings,
               "status": listing_status
           }
-
+        
+  # Text every time a check is done
+  send_text("Quiet Light Monitor Done")
 
   with open('quietlight_data.json', 'w') as fp:
       json.dump(QUIETLIGHT_DATA, fp)
@@ -143,7 +145,7 @@ def main_loop():
   while True:  
     main()
     print("complete")
-    time.sleep(21600)
+    time.sleep(3600)
 
 
 app = Flask(__name__)
